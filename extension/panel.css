@@ -1,0 +1,147 @@
+#lta-panel {
+  position: fixed;
+  top: 80px;
+  right: 20px;
+  z-index: 99999;
+  width: 280px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 13px;
+  color: #ccc;
+  background: #1e1e2e;
+  border: 1px solid #333;
+  border-radius: 10px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.4);
+  overflow: hidden;
+  display: none;
+}
+
+#lta-panel.visible { display: block; }
+#lta-panel * { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* Header */
+.lta-header {
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #2a2a3a;
+  cursor: grab;
+  user-select: none;
+}
+.lta-header:active { cursor: grabbing; }
+.lta-header-left { display: flex; align-items: center; gap: 6px; }
+.lta-header h1 { font-size: 12px; font-weight: 600; color: #e94560; }
+.lta-close {
+  background: none; border: none; color: #555;
+  font-size: 16px; cursor: pointer; padding: 0; line-height: 1;
+}
+.lta-close:hover { color: #ccc; }
+
+/* Status */
+.lta-status-bar {
+  display: flex; gap: 10px; padding: 5px 12px;
+  border-bottom: 1px solid #2a2a3a; font-size: 10px; color: #888;
+}
+.lta-status-item { display: flex; align-items: center; gap: 3px; }
+.lta-dot { width: 6px; height: 6px; border-radius: 50%; }
+.lta-dot.ok { background: #4ecca3; }
+.lta-dot.err { background: #e94560; }
+.lta-dot.pending { background: #555; }
+
+/* Content */
+.lta-content { padding: 12px; }
+
+/* Markers */
+.lta-markers { display: flex; gap: 6px; margin-bottom: 8px; }
+.lta-marker-group { flex: 1; }
+.lta-marker-label {
+  font-size: 9px; text-transform: uppercase; letter-spacing: 0.5px;
+  color: #666; margin-bottom: 2px;
+}
+.lta-marker-row {
+  display: flex; align-items: center; gap: 4px;
+}
+.lta-marker-value {
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  font-size: 14px; color: #4ecca3; cursor: pointer; flex: 1;
+}
+.lta-marker-value:hover { color: #6eecc3; }
+.lta-marker-value.empty { color: #444; cursor: default; }
+
+/* Nudge buttons */
+.lta-nudge {
+  background: #2a2a3a; border: none; color: #888;
+  width: 22px; height: 22px; border-radius: 4px;
+  font-size: 11px; cursor: pointer; display: flex;
+  align-items: center; justify-content: center;
+  font-family: inherit; flex-shrink: 0;
+}
+.lta-nudge:hover { background: #3a3a4a; color: #ccc; }
+.lta-nudge:disabled { opacity: 0.2; cursor: default; }
+.lta-nudge:disabled:hover { background: #2a2a3a; color: #888; }
+
+/* Duration */
+.lta-duration {
+  text-align: center; font-size: 10px; color: #555; margin-bottom: 8px;
+}
+.lta-duration span {
+  color: #4ecca3; font-family: 'SF Mono', 'Fira Code', monospace;
+}
+
+/* Buttons */
+.lta-btn-row { display: flex; gap: 5px; margin-bottom: 8px; }
+#lta-panel button.lta-btn {
+  flex: 1; padding: 6px 8px; border: 1px solid #333;
+  border-radius: 5px; background: #2a2a3a; color: #ccc;
+  font-size: 11px; cursor: pointer; font-family: inherit;
+}
+#lta-panel button.lta-btn:hover { background: #3a3a4a; border-color: #4ecca3; }
+#lta-panel button.lta-btn:active { transform: scale(0.98); }
+
+/* Loop */
+.lta-loop-controls {
+  display: none; align-items: center; margin-bottom: 8px;
+  font-size: 11px;
+}
+.lta-loop-controls.visible { display: flex; }
+.lta-loop-controls label {
+  color: #888; display: flex; align-items: center; gap: 5px; cursor: pointer;
+}
+.lta-loop-controls input[type="checkbox"] { accent-color: #4ecca3; }
+
+/* Name input */
+.lta-name-label {
+  font-size: 9px; text-transform: uppercase; letter-spacing: 0.5px;
+  color: #666; margin-bottom: 2px;
+}
+.lta-name-input {
+  width: 100%; padding: 5px 8px; border: 1px solid #333;
+  border-radius: 5px; background: #2a2a3a; color: #ccc;
+  font-size: 11px; font-family: 'SF Mono', 'Fira Code', monospace;
+  margin-bottom: 8px; outline: none;
+}
+.lta-name-input:focus { border-color: #4ecca3; }
+
+/* Create button */
+#lta-panel button.lta-primary {
+  width: 100%; padding: 8px; border: none; border-radius: 5px;
+  background: #e94560; color: white; font-size: 12px;
+  font-weight: 600; cursor: pointer; font-family: inherit;
+}
+#lta-panel button.lta-primary:hover { background: #ff5a75; }
+#lta-panel button.lta-primary:disabled { opacity: 0.3; cursor: default; }
+#lta-panel button.lta-primary:disabled:hover { background: #e94560; }
+
+/* Messages */
+.lta-message {
+  padding: 6px 8px; border-radius: 5px; font-size: 10px;
+  margin-top: 6px; display: none;
+}
+.lta-message.error {
+  background: rgba(233,69,96,0.12); border: 1px solid rgba(233,69,96,0.25);
+  color: #ff8a9e; display: block;
+}
+.lta-message.success {
+  background: rgba(78,204,163,0.12); border: 1px solid rgba(78,204,163,0.25);
+  color: #4ecca3; display: block;
+}
