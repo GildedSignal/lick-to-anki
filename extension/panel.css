@@ -1,16 +1,34 @@
+/* ═══════════════════════════════════════════════════
+   Lick to Anki — Ukiyo-e Theme
+   Japanese woodblock print aesthetic
+   ═══════════════════════════════════════════════════ */
+
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif:ital,wght@0,400;0,700;1,400&display=swap');
+
 #lta-panel {
   position: fixed;
   top: 70px;
   right: 16px;
   z-index: 99999;
-  width: 320px;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  width: 340px;
+  font-family: 'Noto Serif', 'Georgia', serif;
   font-size: 13px;
-  color: #ccc;
-  background: #1a1a2a;
-  border: 1px solid #2a2a3a;
-  border-radius: 12px;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+  color: #3b2f20;
+  background:
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 18px,
+      rgba(160,130,90,0.04) 18px,
+      rgba(160,130,90,0.04) 19px
+    ),
+    linear-gradient(170deg, #f5e6c8 0%, #efe0c0 30%, #e8d5af 70%, #dfc89e 100%);
+  border: 3px solid #8b7355;
+  border-radius: 4px;
+  box-shadow:
+    0 6px 30px rgba(50,30,10,0.35),
+    inset 0 0 0 1px rgba(255,245,220,0.5),
+    inset 0 0 20px rgba(160,130,90,0.1);
   overflow: hidden;
   display: none;
   user-select: none;
@@ -18,168 +36,289 @@
 #lta-panel.visible { display: block; }
 #lta-panel * { box-sizing: border-box; margin: 0; padding: 0; }
 
-/* Header */
+/* ── Header: wooden plank ── */
 .lta-header {
   padding: 10px 14px;
   display: flex; align-items: center; justify-content: space-between;
-  border-bottom: 1px solid #2a2a3a;
   cursor: grab;
+  background:
+    linear-gradient(90deg,
+      rgba(120,80,40,0.08) 0%, transparent 3%,
+      transparent 15%, rgba(120,80,40,0.05) 16%,
+      transparent 18%, transparent 45%,
+      rgba(120,80,40,0.06) 46%, transparent 48%,
+      transparent 70%, rgba(120,80,40,0.04) 71%,
+      transparent 73%, transparent 100%
+    ),
+    linear-gradient(180deg, #9e7e52 0%, #8b6d42 40%, #7a5e38 100%);
+  border-bottom: 2px solid #5e4528;
+  box-shadow: inset 0 1px 0 rgba(255,220,160,0.3);
 }
 .lta-header:active { cursor: grabbing; }
-.lta-header h1 { font-size: 13px; font-weight: 600; color: #e94560; }
-.lta-close {
-  background: none; border: none; color: #555;
-  font-size: 18px; cursor: pointer; padding: 0 2px; line-height: 1;
+.lta-header h1 {
+  font-size: 15px; font-weight: 700; color: #faebd7;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
 }
-.lta-close:hover { color: #ccc; }
+.lta-close {
+  background: none; border: none; color: #d4b896;
+  font-size: 20px; cursor: pointer; padding: 0 2px; line-height: 1;
+  text-shadow: 1px 1px 1px rgba(0,0,0,0.4);
+}
+.lta-close:hover { color: #fff; }
 
-/* Status bar */
+/* ── Status bar ── */
 .lta-status {
-  display: flex; gap: 12px; padding: 6px 14px;
-  border-bottom: 1px solid #2a2a3a; font-size: 10px; color: #666;
+  display: flex; gap: 14px; padding: 6px 14px;
+  border-bottom: 1px solid rgba(139,115,85,0.3);
+  font-size: 10px; color: #7a6548;
+  background: rgba(139,115,85,0.06);
 }
 .lta-status-item { display: flex; align-items: center; gap: 4px; }
-.lta-dot { width: 6px; height: 6px; border-radius: 50%; }
-.lta-dot.ok { background: #4ecca3; }
-.lta-dot.err { background: #e94560; }
-.lta-dot.pending { background: #444; }
+.lta-dot { width: 7px; height: 7px; border-radius: 50%; border: 1px solid rgba(0,0,0,0.15); }
+.lta-dot.ok { background: #6b8e5a; box-shadow: 0 0 3px rgba(107,142,90,0.4); }
+.lta-dot.err { background: #c0392b; box-shadow: 0 0 3px rgba(192,57,43,0.4); }
+.lta-dot.pending { background: #b8a080; }
 
-/* Body */
+/* ── Body ── */
 .lta-body { padding: 14px; }
 
-/* Section labels */
+/* ── Section labels ── */
 .lta-section {
-  font-size: 9px; text-transform: uppercase; letter-spacing: 0.8px;
-  color: #555; margin-bottom: 6px;
+  font-size: 9px; text-transform: uppercase; letter-spacing: 2px;
+  color: #9e8868; margin-bottom: 8px;
+  display: flex; align-items: center; gap: 8px;
+}
+.lta-section::after {
+  content: ''; flex: 1; height: 1px;
+  background: linear-gradient(90deg, rgba(139,115,85,0.3), transparent);
 }
 
-/* Markers */
-.lta-markers { display: flex; gap: 12px; margin-bottom: 6px; }
-.lta-marker { flex: 1; }
-.lta-marker-row { display: flex; align-items: center; gap: 6px; }
+/* ── Markers ── */
+.lta-markers { display: flex; gap: 10px; margin-bottom: 6px; }
+.lta-marker { flex: 1; text-align: center; }
+.lta-marker-label {
+  font-size: 9px; text-transform: uppercase; letter-spacing: 1px;
+  color: #9e8868; margin-bottom: 2px;
+}
+.lta-marker-row { display: flex; align-items: center; gap: 4px; justify-content: center; }
+
 .lta-ts {
-  font-family: 'SF Mono', 'Fira Code', 'Menlo', monospace;
-  font-size: 18px; color: #4ecca3; cursor: pointer; flex: 1;
-  text-align: center;
+  font-family: 'Noto Serif', Georgia, serif;
+  font-size: 20px; font-weight: 700; color: #3b2f20;
+  cursor: pointer; flex: 1; text-align: center;
+  text-shadow: 0 1px 0 rgba(255,240,210,0.6);
 }
-.lta-ts:hover { color: #7fffda; }
-.lta-ts.empty { color: #333; cursor: default; }
-.lta-ts.empty:hover { color: #333; }
+.lta-ts:hover { color: #8b4513; }
+.lta-ts.empty { color: #c4b49a; cursor: default; }
+.lta-ts.empty:hover { color: #c4b49a; }
 
+/* ── Nudge buttons: wooden toggles ── */
 .lta-nudge {
-  background: #252535; border: 1px solid #333; color: #666;
-  width: 24px; height: 28px; border-radius: 5px;
+  background: linear-gradient(180deg, #a08060 0%, #8b6d42 100%);
+  border: 1px solid #6b5030;
+  color: #f0e0c8;
+  width: 22px; height: 26px; border-radius: 3px;
   font-size: 14px; cursor: pointer; display: flex;
   align-items: center; justify-content: center; flex-shrink: 0;
+  text-shadow: 0 1px 1px rgba(0,0,0,0.3);
+  box-shadow: inset 0 1px 0 rgba(255,220,160,0.3), 0 1px 2px rgba(0,0,0,0.15);
 }
-.lta-nudge:hover { background: #303045; color: #aaa; border-color: #4ecca3; }
-.lta-nudge:active { transform: scale(0.95); }
-.lta-nudge:disabled { opacity: 0.15; cursor: default; }
-.lta-nudge:disabled:hover { background: #252535; color: #666; border-color: #333; }
+.lta-nudge:hover { background: linear-gradient(180deg, #b89070 0%, #9e7e52 100%); }
+.lta-nudge:active { transform: scale(0.95); box-shadow: inset 0 1px 3px rgba(0,0,0,0.2); }
+.lta-nudge:disabled { opacity: 0.25; cursor: default; }
+.lta-nudge:disabled:hover { background: linear-gradient(180deg, #a08060 0%, #8b6d42 100%); }
 
-/* Duration */
+/* ── Duration badge ── */
 .lta-dur {
-  text-align: center; font-size: 11px; color: #555; margin-bottom: 10px;
-  font-family: 'SF Mono', 'Fira Code', monospace;
+  text-align: center; margin-bottom: 10px;
 }
-.lta-dur span { color: #4ecca3; }
+.lta-dur span {
+  display: inline-block;
+  background: rgba(139,115,85,0.12);
+  border: 1px solid rgba(139,115,85,0.25);
+  border-radius: 10px;
+  padding: 2px 12px;
+  font-size: 12px; color: #6b5030;
+  font-weight: 600;
+}
 
-/* Buttons row */
+/* ── Action buttons: wooden style ── */
 .lta-actions { display: flex; gap: 6px; margin-bottom: 10px; }
+
 #lta-panel .lta-btn {
-  flex: 1; padding: 7px 0; border: 1px solid #333;
-  border-radius: 6px; background: #252535; color: #bbb;
-  font-size: 11px; cursor: pointer; font-family: inherit;
+  flex: 1; padding: 7px 4px;
+  border: 1px solid #8b7355;
+  border-radius: 4px;
+  background:
+    linear-gradient(90deg, rgba(120,80,40,0.05) 0%, transparent 50%, rgba(120,80,40,0.05) 100%),
+    linear-gradient(180deg, #c4a87a 0%, #b8986a 40%, #a88858 100%);
+  color: #3b2f20;
+  font-size: 11px; font-weight: 600; cursor: pointer;
+  font-family: 'Noto Serif', Georgia, serif;
+  text-shadow: 0 1px 0 rgba(255,240,210,0.4);
+  box-shadow: inset 0 1px 0 rgba(255,220,160,0.35), 0 1px 2px rgba(0,0,0,0.1);
   text-align: center;
 }
-#lta-panel .lta-btn:hover { background: #303045; border-color: #4ecca3; color: #ddd; }
-#lta-panel .lta-btn:active { transform: scale(0.98); }
+#lta-panel .lta-btn:hover {
+  background: linear-gradient(180deg, #d0b88a 0%, #c4a87a 40%, #b89868 100%);
+}
+#lta-panel .lta-btn:active {
+  transform: scale(0.98);
+  box-shadow: inset 0 1px 3px rgba(0,0,0,0.15);
+}
 
-/* Loop */
+/* ── Loop toggle ── */
 .lta-loop {
-  display: none; align-items: center; margin-bottom: 12px; font-size: 11px;
+  display: none; align-items: center; margin-bottom: 12px;
+  font-size: 12px;
 }
 .lta-loop.visible { display: flex; }
 .lta-loop label {
-  color: #777; display: flex; align-items: center; gap: 6px; cursor: pointer;
+  color: #6b5030; display: flex; align-items: center; gap: 6px; cursor: pointer;
 }
-.lta-loop input[type="checkbox"] { accent-color: #4ecca3; }
+.lta-loop input[type="checkbox"] { accent-color: #8b6d42; }
 
-/* Divider */
-.lta-divider { border: none; border-top: 1px solid #2a2a3a; margin: 12px 0; }
+/* ── Divider: brush stroke ── */
+.lta-divider {
+  border: none;
+  height: 2px;
+  margin: 14px 0;
+  background:
+    linear-gradient(90deg,
+      transparent 0%,
+      rgba(139,115,85,0.15) 10%,
+      rgba(139,115,85,0.3) 30%,
+      rgba(139,115,85,0.35) 50%,
+      rgba(139,115,85,0.3) 70%,
+      rgba(139,115,85,0.15) 90%,
+      transparent 100%
+    );
+}
 
-/* Name input */
+/* ── Name input: scroll style ── */
 .lta-input {
-  width: 100%; padding: 7px 10px; border: 1px solid #333;
-  border-radius: 6px; background: #252535; color: #ccc;
-  font-size: 11px; font-family: 'SF Mono', 'Fira Code', monospace;
+  width: 100%; padding: 8px 10px;
+  border: 1px solid #b8a080;
+  border-radius: 3px;
+  background: rgba(255,250,240,0.6);
+  color: #3b2f20;
+  font-size: 12px;
+  font-family: 'Noto Serif', Georgia, serif;
   margin-bottom: 10px; outline: none;
+  box-shadow: inset 0 1px 3px rgba(139,115,85,0.1);
 }
-.lta-input:focus { border-color: #4ecca3; }
+.lta-input:focus {
+  border-color: #8b6d42;
+  box-shadow: inset 0 1px 3px rgba(139,115,85,0.15), 0 0 0 2px rgba(139,109,66,0.1);
+}
+.lta-input::placeholder { color: #c4b49a; }
 
-/* Primary button */
+/* ── Create button: lacquered wood ── */
 #lta-panel .lta-primary {
-  width: 100%; padding: 9px; border: none; border-radius: 6px;
-  background: #e94560; color: white; font-size: 12px;
-  font-weight: 600; cursor: pointer; font-family: inherit;
+  width: 100%; padding: 10px;
+  border: 2px solid #5e2018;
+  border-radius: 4px;
+  background:
+    linear-gradient(180deg, #c0392b 0%, #a93226 40%, #922b21 100%);
+  color: #faebd7;
+  font-size: 13px; font-weight: 700;
+  cursor: pointer;
+  font-family: 'Noto Serif', Georgia, serif;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.4);
+  box-shadow:
+    inset 0 1px 0 rgba(255,150,130,0.25),
+    0 2px 4px rgba(0,0,0,0.2);
 }
-#lta-panel .lta-primary:hover { background: #ff5a75; }
-#lta-panel .lta-primary:active { transform: scale(0.99); }
-#lta-panel .lta-primary:disabled { opacity: 0.25; cursor: default; }
-#lta-panel .lta-primary:disabled:hover { background: #e94560; }
+#lta-panel .lta-primary:hover {
+  background: linear-gradient(180deg, #d44637 0%, #c0392b 40%, #a93226 100%);
+}
+#lta-panel .lta-primary:active {
+  transform: scale(0.99);
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.3);
+}
+#lta-panel .lta-primary:disabled { opacity: 0.3; cursor: default; }
+#lta-panel .lta-primary:disabled:hover {
+  background: linear-gradient(180deg, #c0392b 0%, #a93226 40%, #922b21 100%);
+}
 
-/* Message */
+/* ── Messages ── */
 .lta-msg {
-  padding: 7px 10px; border-radius: 6px; font-size: 11px;
+  padding: 7px 10px; border-radius: 3px; font-size: 11px;
   margin-top: 8px; display: none;
 }
 .lta-msg.error {
-  background: rgba(233,69,96,0.1); border: 1px solid rgba(233,69,96,0.2);
-  color: #ff8a9e; display: block;
+  background: rgba(192,57,43,0.08);
+  border: 1px solid rgba(192,57,43,0.25);
+  color: #922b21; display: block;
 }
 .lta-msg.success {
-  background: rgba(78,204,163,0.1); border: 1px solid rgba(78,204,163,0.2);
-  color: #4ecca3; display: block;
+  background: rgba(107,142,90,0.1);
+  border: 1px solid rgba(107,142,90,0.3);
+  color: #4a6e3a; display: block;
 }
 
-/* Saved licks list */
+/* ── Saved licks list ── */
 .lta-licks {
   max-height: 180px;
   overflow-y: auto;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
 }
-.lta-licks::-webkit-scrollbar { width: 4px; }
-.lta-licks::-webkit-scrollbar-thumb { background: #333; border-radius: 2px; }
+.lta-licks::-webkit-scrollbar { width: 5px; }
+.lta-licks::-webkit-scrollbar-track { background: transparent; }
+.lta-licks::-webkit-scrollbar-thumb { background: #c4b49a; border-radius: 3px; }
 
 .lta-lick {
   display: flex; align-items: center; gap: 6px;
-  padding: 6px 8px; border-radius: 6px; margin-bottom: 3px;
-  cursor: pointer; transition: background 0.1s;
+  padding: 7px 8px; margin-bottom: 4px;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: background 0.1s;
+  border: 1px solid transparent;
+  background: rgba(139,115,85,0.04);
 }
-.lta-lick:hover { background: #252535; }
-.lta-lick.active { background: #252535; border: 1px solid #4ecca3; }
-.lta-lick:not(.active) { border: 1px solid transparent; }
+.lta-lick:hover {
+  background: rgba(139,115,85,0.1);
+  border-color: rgba(139,115,85,0.2);
+}
+.lta-lick.active {
+  background: rgba(139,109,66,0.12);
+  border-color: #8b6d42;
+}
 
 .lta-lick-name {
-  flex: 1; font-size: 11px; color: #999;
+  flex: 1; font-size: 11px; color: #6b5030;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
-.lta-lick.active .lta-lick-name { color: #4ecca3; }
+.lta-lick.active .lta-lick-name { color: #3b2f20; font-weight: 600; }
 
 .lta-lick-dur {
-  font-size: 10px; color: #555;
-  font-family: 'SF Mono', 'Fira Code', monospace;
+  font-size: 10px; color: #9e8868;
+  font-family: 'Noto Serif', Georgia, serif;
   flex-shrink: 0;
 }
 
 .lta-lick-btn {
-  background: none; border: none; color: #555;
+  background: none; border: none; color: #9e8868;
   font-size: 13px; cursor: pointer; padding: 0 2px;
   flex-shrink: 0;
 }
-.lta-lick-btn:hover { color: #e94560; }
+.lta-lick-btn:hover { color: #c0392b; }
+.lta-lick-play:hover { color: #6b8e5a; }
 
 .lta-empty {
-  text-align: center; color: #444; font-size: 11px;
-  padding: 12px 0; font-style: italic;
+  text-align: center; color: #b8a080; font-size: 11px;
+  padding: 14px 0; font-style: italic;
+}
+
+/* ── Stamp decoration ── */
+.lta-stamp {
+  position: absolute; top: 50px; right: 8px;
+  writing-mode: vertical-rl;
+  font-size: 10px; color: rgba(192,57,43,0.2);
+  letter-spacing: 3px; font-weight: 700;
+  pointer-events: none;
 }

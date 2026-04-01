@@ -29,9 +29,10 @@
       <div class="lta-status-item"><span class="lta-dot pending" id="ltaDotAnki"></span><span>Anki</span></div>
     </div>
     <div class="lta-body">
-      <div class="lta-section">MARKERS</div>
+      <div class="lta-section">Markers</div>
       <div class="lta-markers">
         <div class="lta-marker">
+          <div class="lta-marker-label">Start</div>
           <div class="lta-marker-row">
             <button class="lta-nudge" id="ltaSM">&lsaquo;</button>
             <div class="lta-ts empty" id="ltaS">--:--</div>
@@ -39,6 +40,7 @@
           </div>
         </div>
         <div class="lta-marker">
+          <div class="lta-marker-label">End</div>
           <div class="lta-marker-row">
             <button class="lta-nudge" id="ltaEM">&lsaquo;</button>
             <div class="lta-ts empty" id="ltaE">--:--</div>
@@ -58,17 +60,18 @@
 
       <hr class="lta-divider">
 
-      <div class="lta-section">CARD</div>
+      <div class="lta-section">Card</div>
       <input type="text" class="lta-input" id="ltaName" placeholder="card name (auto-generated)">
       <button class="lta-primary" id="ltaCreate" disabled>Create Anki Card</button>
 
       <hr class="lta-divider">
 
-      <div class="lta-section">SAVED LICKS</div>
+      <div class="lta-section">Saved Licks</div>
       <div id="ltaLicks"></div>
 
       <div class="lta-msg" id="ltaMsg"></div>
     </div>
+    <div class="lta-stamp">&#32654;&#38899;</div>
   `;
   document.body.appendChild(panel);
 
@@ -321,37 +324,50 @@
       await toAnki({ action: 'createDeck', version: 6, params: { deck: 'Guitar Phrases' } });
       await toAnki({ action: 'storeMediaFile', version: 6, params: { filename, data: b64 } });
 
+      const dur = (endMarker - startMarker).toFixed(1);
+
       const front = `<div style="
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-        text-align: center; padding: 20px;
+        font-family: Georgia, 'Noto Serif', serif;
+        text-align: center; padding: 30px 20px;
+        background: linear-gradient(170deg, #f5e6c8, #e8d5af);
+        min-height: 100px;
       ">
-        <div style="font-size: 14px; color: #888; margin-bottom: 16px;">
-          Listen and learn this phrase
+        <div style="font-size: 13px; color: #9e8868; letter-spacing: 2px;
+          text-transform: uppercase; margin-bottom: 20px;">
+          Listen &middot; Learn &middot; Play
         </div>
         [sound:${filename}]
-        <div style="margin-top: 16px; font-size: 12px; color: #aaa;">
-          ${(endMarker - startMarker).toFixed(1)}s
+        <div style="margin-top: 20px; display: inline-block;
+          background: rgba(139,115,85,0.1); border: 1px solid rgba(139,115,85,0.2);
+          border-radius: 4px; padding: 4px 14px;
+          font-size: 12px; color: #6b5030;">
+          ${dur}s
         </div>
       </div>`;
 
       const back = `<div style="
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-        text-align: center; padding: 20px;
+        font-family: Georgia, 'Noto Serif', serif;
+        text-align: center; padding: 30px 20px;
+        background: linear-gradient(170deg, #f5e6c8, #e8d5af);
       ">
-        <div style="font-size: 18px; font-weight: 600; color: #333; margin-bottom: 4px;">
+        <div style="font-size: 20px; font-weight: 700; color: #3b2f20;
+          margin-bottom: 4px; letter-spacing: 0.5px;">
           ${m.channel}
         </div>
-        <div style="font-size: 14px; color: #666; margin-bottom: 16px;">
+        <div style="font-size: 14px; color: #7a6548; margin-bottom: 20px;
+          font-style: italic;">
           ${m.title}
         </div>
-        <div style="margin-bottom: 16px;">
+        <div style="margin-bottom: 20px;">
           <a href="${ytLink}" style="
-            color: #e94560; text-decoration: none; font-size: 13px;
-          ">&#9654; Watch at ${fmt(startMarker)}</a>
+            color: #c0392b; text-decoration: none; font-size: 13px;
+            padding: 6px 16px; border: 1px solid #c0392b; border-radius: 3px;
+          ">&#9654;&ensp;Watch at ${fmt(startMarker)}</a>
         </div>
         <div style="
-          font-style: italic; color: #999; font-size: 13px;
-          padding: 12px; background: #f5f5f5; border-radius: 8px;
+          color: #9e8868; font-size: 13px; font-style: italic;
+          padding: 14px; background: rgba(139,115,85,0.08);
+          border-radius: 4px; border: 1px solid rgba(139,115,85,0.15);
         ">
           Record yourself, then compare
         </div>
