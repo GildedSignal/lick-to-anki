@@ -9,15 +9,9 @@ import os
 import struct
 import subprocess
 import sys
-import traceback
 
-LOG_FILE = os.path.expanduser("~/Music/Guitar Phrases/native_host.log")
 OUTPUT_DIR = os.path.expanduser("~/Music/Guitar Phrases")
 os.makedirs(OUTPUT_DIR, exist_ok=True)
-
-def log(msg):
-    with open(LOG_FILE, "a") as f:
-        f.write(msg + "\n")
 
 
 def read_message():
@@ -103,13 +97,4 @@ def main():
 
 
 if __name__ == "__main__":
-    try:
-        log("--- native_host.py started ---")
-        log(f"stdin isatty: {sys.stdin.isatty()}")
-        log(f"argv: {sys.argv}")
-        main()
-        log("--- finished ok ---")
-    except Exception as e:
-        log(f"CRASH: {e}")
-        log(traceback.format_exc())
-        raise
+    main()

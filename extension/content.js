@@ -1,153 +1,220 @@
 // Content script — injects floating panel into YouTube pages
-// Designed to be re-injected safely (SPA navigations destroy the DOM but not the script context)
+// Supports multiple licks per video, persistent across sessions
+// Auto-loops when opened from Anki link with #lta=start,end hash
 
 (function() {
-  // Remove stale panel if it exists (SPA navigation may have destroyed its event handlers)
   const existing = document.getElementById('lta-panel');
   if (existing) existing.remove();
-
-  // Clean up previous listener if re-injected
-  if (window._ltaListener) {
-    chrome.runtime.onMessage.removeListener(window._ltaListener);
-  }
+  if (window._ltaListener) chrome.runtime.onMessage.removeListener(window._ltaListener);
 
   // State
   let startMarker = null;
   let endMarker = null;
   let loopInterval = null;
   let loopPaused = false;
+  let licks = []; // Array of { start, end, name }
+  let activeLickIndex = -1;
   const FRAME = 1 / 30;
 
-  // Build panel
+  // Panel HTML
   const panel = document.createElement('div');
   panel.id = 'lta-panel';
   panel.innerHTML = `
-    <div class="lta-header" id="ltaDragHandle">
-      <div class="lta-header-left">
-        <h1>Lick to Anki</h1>
-      </div>
+    <div class="lta-header" id="ltaDrag">
+      <h1>Lick to Anki</h1>
       <button class="lta-close" id="ltaClose">&times;</button>
     </div>
-    <div class="lta-status-bar">
-      <div class="lta-status-item">
-        <span class="lta-dot pending" id="ltaHostDot"></span><span>yt-dlp</span>
-      </div>
-      <div class="lta-status-item">
-        <span class="lta-dot pending" id="ltaAnkiDot"></span><span>Anki</span>
-      </div>
+    <div class="lta-status">
+      <div class="lta-status-item"><span class="lta-dot pending" id="ltaDotHost"></span><span>yt-dlp</span></div>
+      <div class="lta-status-item"><span class="lta-dot pending" id="ltaDotAnki"></span><span>Anki</span></div>
     </div>
-    <div class="lta-content">
+    <div class="lta-body">
+      <div class="lta-section">MARKERS</div>
       <div class="lta-markers">
-        <div class="lta-marker-group">
-          <div class="lta-marker-label">Start</div>
+        <div class="lta-marker">
           <div class="lta-marker-row">
-            <button class="lta-nudge" id="ltaStartMinus" title="-1 frame">&lsaquo;</button>
-            <div class="lta-marker-value empty" id="ltaStart">--:--</div>
-            <button class="lta-nudge" id="ltaStartPlus" title="+1 frame">&rsaquo;</button>
+            <button class="lta-nudge" id="ltaSM">&lsaquo;</button>
+            <div class="lta-ts empty" id="ltaS">--:--</div>
+            <button class="lta-nudge" id="ltaSP">&rsaquo;</button>
           </div>
         </div>
-        <div class="lta-marker-group">
-          <div class="lta-marker-label">End</div>
+        <div class="lta-marker">
           <div class="lta-marker-row">
-            <button class="lta-nudge" id="ltaEndMinus" title="-1 frame">&lsaquo;</button>
-            <div class="lta-marker-value empty" id="ltaEnd">--:--</div>
-            <button class="lta-nudge" id="ltaEndPlus" title="+1 frame">&rsaquo;</button>
+            <button class="lta-nudge" id="ltaEM">&lsaquo;</button>
+            <div class="lta-ts empty" id="ltaE">--:--</div>
+            <button class="lta-nudge" id="ltaEP">&rsaquo;</button>
           </div>
         </div>
       </div>
-      <div class="lta-duration" id="ltaDuration" style="display:none">
-        <span id="ltaDurationVal"></span>
+      <div class="lta-dur" id="ltaDur" style="display:none"><span id="ltaDurV"></span></div>
+      <div class="lta-actions">
+        <button class="lta-btn" id="ltaMarkS">Mark Start</button>
+        <button class="lta-btn" id="ltaMarkE">Mark End</button>
+        <button class="lta-btn" id="ltaClear">Clear</button>
       </div>
-      <div class="lta-btn-row">
-        <button class="lta-btn" id="ltaBtnStart">Mark Start</button>
-        <button class="lta-btn" id="ltaBtnEnd">Mark End</button>
-        <button class="lta-btn" id="ltaBtnClear">Clear</button>
+      <div class="lta-loop" id="ltaLoopRow">
+        <label><input type="checkbox" id="ltaLoop"> Loop phrase</label>
       </div>
-      <div class="lta-loop-controls" id="ltaLoopControls">
-        <label><input type="checkbox" id="ltaLoopCheck"> Loop phrase</label>
-      </div>
-      <div class="lta-name-label">Card name</div>
-      <input type="text" class="lta-name-input" id="ltaCardName" placeholder="auto-generated...">
-      <button class="lta-primary" id="ltaBtnCreate" disabled>Create Anki Card</button>
-      <div class="lta-message" id="ltaMessage"></div>
+
+      <hr class="lta-divider">
+
+      <div class="lta-section">CARD</div>
+      <input type="text" class="lta-input" id="ltaName" placeholder="card name (auto-generated)">
+      <button class="lta-primary" id="ltaCreate" disabled>Create Anki Card</button>
+
+      <hr class="lta-divider">
+
+      <div class="lta-section">SAVED LICKS</div>
+      <div id="ltaLicks"></div>
+
+      <div class="lta-msg" id="ltaMsg"></div>
     </div>
   `;
   document.body.appendChild(panel);
 
-  // --- Helpers ---
+  // --- Utilities ---
   function fmt(s) {
     if (s == null) return '--:--';
     return `${Math.floor(s / 60)}:${(s % 60).toFixed(1).padStart(4, '0')}`;
   }
-
-  function slugify(s) {
-    return s.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '').substring(0, 60);
-  }
-
-  const vid = () => document.querySelector('video');
-  const vidId = () => new URLSearchParams(window.location.search).get('v');
-
-  function vidMeta() {
+  function slug(s) { return s.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '').substring(0, 50); }
+  const v = () => document.querySelector('video');
+  const vId = () => new URLSearchParams(window.location.search).get('v');
+  function meta() {
     const ch = document.querySelector('#channel-name a') || document.querySelector('ytd-channel-name a');
     const ti = document.querySelector('h1.ytd-watch-metadata yt-formatted-string') || document.querySelector('h1.title');
-    return {
-      channel: ch ? ch.textContent.trim() : 'unknown',
-      title: ti ? ti.textContent.trim() : document.title
-    };
+    return { channel: ch ? ch.textContent.trim() : 'unknown', title: ti ? ti.textContent.trim() : document.title };
   }
-
   function genName() {
-    const m = vidMeta();
-    return `${slugify(m.channel)}_${slugify(m.title)}_${startMarker != null ? Math.floor(startMarker) : 0}`;
+    const m = meta();
+    return `${slug(m.channel)}_${slug(m.title)}_${startMarker != null ? Math.floor(startMarker) : 0}`;
   }
 
-  function sKey() { const id = vidId(); return id ? `lta_${id}` : null; }
+  // --- Storage ---
+  function sKey() { const id = vId(); return id ? `lta_${id}` : null; }
 
-  function saveMarkers() {
-    const k = sKey(); if (k) chrome.storage.local.set({ [k]: { s: startMarker, e: endMarker } });
+  function save() {
+    const k = sKey(); if (!k) return;
+    chrome.storage.local.set({ [k]: { licks } });
   }
 
-  function loadMarkers(cb) {
+  function load(cb) {
     const k = sKey(); if (!k) return cb();
     chrome.storage.local.get(k, r => {
-      if (r[k]) { startMarker = r[k].s; endMarker = r[k].e; }
+      if (r[k] && r[k].licks) {
+        licks = r[k].licks;
+      } else if (r[k] && r[k].s != null) {
+        // Migrate old format
+        licks = [{ start: r[k].s, end: r[k].e, name: genName() }];
+      }
       cb();
     });
   }
 
+  // --- Messages ---
   function msg(text, type) {
-    const el = panel.querySelector('#ltaMessage');
-    el.textContent = text; el.className = `lta-message ${type}`;
-    if (type === 'success') setTimeout(() => { el.className = 'lta-message'; }, 4000);
+    const el = panel.querySelector('#ltaMsg');
+    el.textContent = text; el.className = `lta-msg ${type}`;
+    if (type === 'success') setTimeout(() => { el.className = 'lta-msg'; }, 4000);
   }
 
+  // --- UI ---
   function updateUI() {
-    const sEl = panel.querySelector('#ltaStart');
-    const eEl = panel.querySelector('#ltaEnd');
-    const nameEl = panel.querySelector('#ltaCardName');
+    const sEl = panel.querySelector('#ltaS');
+    const eEl = panel.querySelector('#ltaE');
+    const nameEl = panel.querySelector('#ltaName');
 
     sEl.textContent = fmt(startMarker);
     sEl.classList.toggle('empty', startMarker == null);
     eEl.textContent = fmt(endMarker);
     eEl.classList.toggle('empty', endMarker == null);
 
-    panel.querySelector('#ltaStartMinus').disabled = startMarker == null;
-    panel.querySelector('#ltaStartPlus').disabled = startMarker == null;
-    panel.querySelector('#ltaEndMinus').disabled = endMarker == null;
-    panel.querySelector('#ltaEndPlus').disabled = endMarker == null;
+    panel.querySelector('#ltaSM').disabled = startMarker == null;
+    panel.querySelector('#ltaSP').disabled = startMarker == null;
+    panel.querySelector('#ltaEM').disabled = endMarker == null;
+    panel.querySelector('#ltaEP').disabled = endMarker == null;
 
     const both = startMarker != null && endMarker != null;
     if (both) {
-      panel.querySelector('#ltaDurationVal').textContent = `${(endMarker - startMarker).toFixed(1)}s`;
-      panel.querySelector('#ltaDuration').style.display = 'block';
-      panel.querySelector('#ltaLoopControls').classList.add('visible');
+      panel.querySelector('#ltaDurV').textContent = `${(endMarker - startMarker).toFixed(1)}s`;
+      panel.querySelector('#ltaDur').style.display = 'block';
+      panel.querySelector('#ltaLoopRow').classList.add('visible');
     } else {
-      panel.querySelector('#ltaDuration').style.display = 'none';
-      panel.querySelector('#ltaLoopControls').classList.remove('visible');
+      panel.querySelector('#ltaDur').style.display = 'none';
+      panel.querySelector('#ltaLoopRow').classList.remove('visible');
     }
-    panel.querySelector('#ltaBtnCreate').disabled = !both;
-
+    panel.querySelector('#ltaCreate').disabled = !both;
     if (!nameEl.value && startMarker != null) nameEl.value = genName();
+
+    renderLicks();
+  }
+
+  function renderLicks() {
+    const container = panel.querySelector('#ltaLicks');
+    if (licks.length === 0) {
+      container.innerHTML = '<div class="lta-empty">No saved licks yet</div>';
+      return;
+    }
+    container.innerHTML = licks.map((l, i) => `
+      <div class="lta-lick ${i === activeLickIndex ? 'active' : ''}" data-i="${i}">
+        <span class="lta-lick-name">${l.name}</span>
+        <span class="lta-lick-dur">${(l.end - l.start).toFixed(1)}s</span>
+        <button class="lta-lick-btn lta-lick-play" data-i="${i}" title="Loop this lick">&#9654;</button>
+        <button class="lta-lick-btn lta-lick-del" data-i="${i}" title="Remove">&times;</button>
+      </div>
+    `).join('');
+
+    // Click lick row to load into editor
+    container.querySelectorAll('.lta-lick').forEach(el => {
+      el.addEventListener('click', e => {
+        if (e.target.closest('.lta-lick-btn')) return;
+        const i = parseInt(el.dataset.i);
+        loadLick(i);
+      });
+    });
+    // Play button
+    container.querySelectorAll('.lta-lick-play').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const i = parseInt(btn.dataset.i);
+        loadLick(i);
+        panel.querySelector('#ltaLoop').checked = true;
+        startLoop();
+      });
+    });
+    // Delete button
+    container.querySelectorAll('.lta-lick-del').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const i = parseInt(btn.dataset.i);
+        licks.splice(i, 1);
+        if (activeLickIndex === i) { activeLickIndex = -1; startMarker = null; endMarker = null; }
+        else if (activeLickIndex > i) activeLickIndex--;
+        save(); updateUI();
+      });
+    });
+  }
+
+  function loadLick(i) {
+    activeLickIndex = i;
+    startMarker = licks[i].start;
+    endMarker = licks[i].end;
+    panel.querySelector('#ltaName').value = licks[i].name;
+    const vo = v(); if (vo) vo.currentTime = startMarker;
+    updateUI();
+  }
+
+  function saveLick() {
+    if (startMarker == null || endMarker == null) return;
+    const name = panel.querySelector('#ltaName').value || genName();
+    const lick = { start: startMarker, end: endMarker, name };
+
+    if (activeLickIndex >= 0) {
+      licks[activeLickIndex] = lick;
+    } else {
+      licks.push(lick);
+      activeLickIndex = licks.length - 1;
+    }
+    save();
+    updateUI();
   }
 
   // --- Background bridge ---
@@ -160,7 +227,6 @@
       });
     });
   }
-
   function toAnki(payload) {
     return new Promise((resolve, reject) => {
       chrome.runtime.sendMessage({ target: 'background', action: 'ankiConnect', payload }, r => {
@@ -170,67 +236,63 @@
     });
   }
 
-  // --- Health checks ---
+  // --- Health ---
   async function checkHost() {
-    const d = panel.querySelector('#ltaHostDot');
+    const d = panel.querySelector('#ltaDotHost');
     try { await toNative({ action: 'ping' }); d.className = 'lta-dot ok'; return true; }
     catch { d.className = 'lta-dot err'; return false; }
   }
-
   async function checkAnki() {
-    const d = panel.querySelector('#ltaAnkiDot');
+    const d = panel.querySelector('#ltaDotAnki');
     try {
       const r = await toAnki({ action: 'version', version: 6 });
       if (r && !r.error) { d.className = 'lta-dot ok'; return true; }
     } catch {}
-    d.className = 'lta-dot err';
-    return false;
+    d.className = 'lta-dot err'; return false;
   }
 
   // --- Loop ---
   function startLoop() {
     stopLoop();
     if (startMarker == null || endMarker == null) return;
-    const v = vid(); if (!v) return;
-    v.currentTime = startMarker;
+    const vo = v(); if (!vo) return;
+    vo.currentTime = startMarker;
+    if (vo.paused) vo.play();
     loopInterval = setInterval(() => {
       if (loopPaused) return;
-      const v = vid(); if (!v) { stopLoop(); return; }
-      if (v.currentTime >= endMarker || v.currentTime < startMarker - 0.5) {
-        v.currentTime = startMarker;
+      const vo = v(); if (!vo) { stopLoop(); return; }
+      if (vo.currentTime >= endMarker || vo.currentTime < startMarker - 0.5) {
+        vo.currentTime = startMarker;
       }
-    }, 200);
+    }, 150);
   }
-
-  function stopLoop() {
-    if (loopInterval) { clearInterval(loopInterval); loopInterval = null; }
-  }
-
-  function pauseLoop() {
-    loopPaused = true;
-    setTimeout(() => { loopPaused = false; }, 1500);
-  }
+  function stopLoop() { if (loopInterval) { clearInterval(loopInterval); loopInterval = null; } }
+  function pauseLoop() { loopPaused = true; setTimeout(() => { loopPaused = false; }, 1500); }
 
   // --- Nudge ---
   function nudge(which, delta) {
     pauseLoop();
-    if (which === 'start' && startMarker != null) {
+    if (which === 's' && startMarker != null) {
       startMarker = Math.max(0, startMarker + delta);
       if (endMarker != null && startMarker >= endMarker) startMarker = endMarker - FRAME;
-      const v = vid(); if (v) v.currentTime = startMarker;
+      const vo = v(); if (vo) vo.currentTime = startMarker;
     }
-    if (which === 'end' && endMarker != null) {
+    if (which === 'e' && endMarker != null) {
       endMarker = Math.max(0, endMarker + delta);
       if (startMarker != null && endMarker <= startMarker) endMarker = startMarker + FRAME;
-      const v = vid(); if (v) v.currentTime = endMarker;
+      const vo = v(); if (vo) vo.currentTime = endMarker;
     }
-    saveMarkers();
-    updateUI();
+    // Update saved lick if editing one
+    if (activeLickIndex >= 0) {
+      licks[activeLickIndex].start = startMarker;
+      licks[activeLickIndex].end = endMarker;
+    }
+    save(); updateUI();
   }
 
   // --- Create card ---
   async function createCard() {
-    const btn = panel.querySelector('#ltaBtnCreate');
+    const btn = panel.querySelector('#ltaCreate');
     btn.disabled = true;
     btn.textContent = 'Extracting...';
 
@@ -239,8 +301,12 @@
       if (!hostOk) throw new Error('yt-dlp host not reachable');
       if (!ankiOk) throw new Error('AnkiConnect not reachable — is Anki open?');
 
-      const name = panel.querySelector('#ltaCardName').value || genName();
-      const id = vidId();
+      const name = panel.querySelector('#ltaName').value || genName();
+      const id = vId();
+      const m = meta();
+
+      // Save lick first
+      saveLick();
 
       const result = await toNative({
         action: 'extract', url: window.location.href,
@@ -249,22 +315,56 @@
 
       btn.textContent = 'Creating card...';
       const { filename, data: b64 } = result;
-      const ytLink = `https://youtu.be/${id}?t=${Math.floor(startMarker)}`;
+      const startSec = Math.floor(startMarker);
+      const ytLink = `https://www.youtube.com/watch?v=${id}&t=${startSec}#lta=${startMarker.toFixed(1)},${endMarker.toFixed(1)}`;
 
       await toAnki({ action: 'createDeck', version: 6, params: { deck: 'Guitar Phrases' } });
       await toAnki({ action: 'storeMediaFile', version: 6, params: { filename, data: b64 } });
+
+      const front = `<div style="
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        text-align: center; padding: 20px;
+      ">
+        <div style="font-size: 14px; color: #888; margin-bottom: 16px;">
+          Listen and learn this phrase
+        </div>
+        [sound:${filename}]
+        <div style="margin-top: 16px; font-size: 12px; color: #aaa;">
+          ${(endMarker - startMarker).toFixed(1)}s
+        </div>
+      </div>`;
+
+      const back = `<div style="
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        text-align: center; padding: 20px;
+      ">
+        <div style="font-size: 18px; font-weight: 600; color: #333; margin-bottom: 4px;">
+          ${m.channel}
+        </div>
+        <div style="font-size: 14px; color: #666; margin-bottom: 16px;">
+          ${m.title}
+        </div>
+        <div style="margin-bottom: 16px;">
+          <a href="${ytLink}" style="
+            color: #e94560; text-decoration: none; font-size: 13px;
+          ">&#9654; Watch at ${fmt(startMarker)}</a>
+        </div>
+        <div style="
+          font-style: italic; color: #999; font-size: 13px;
+          padding: 12px; background: #f5f5f5; border-radius: 8px;
+        ">
+          Record yourself, then compare
+        </div>
+      </div>`;
 
       const noteResult = await toAnki({
         action: 'addNote', version: 6,
         params: {
           note: {
             deckName: 'Guitar Phrases', modelName: 'Basic',
-            fields: {
-              Front: `[sound:${filename}]`,
-              Back: `<a href="${ytLink}">${ytLink}</a><br><br><i>[record yourself, then compare]</i>`
-            },
+            fields: { Front: front, Back: back },
             options: { allowDuplicate: false },
-            tags: ['guitar', 'phrase']
+            tags: ['guitar', 'phrase', slug(m.channel)]
           }
         }
       });
@@ -281,7 +381,7 @@
 
   // --- Drag ---
   let dragging = false, ox, oy;
-  panel.querySelector('#ltaDragHandle').addEventListener('mousedown', e => {
+  panel.querySelector('#ltaDrag').addEventListener('mousedown', e => {
     if (e.target.closest('.lta-close')) return;
     dragging = true;
     ox = e.clientX - panel.offsetLeft;
@@ -299,54 +399,49 @@
   // --- Event handlers ---
   panel.querySelector('#ltaClose').addEventListener('click', () => panel.classList.remove('visible'));
 
-  panel.querySelector('#ltaBtnStart').addEventListener('click', () => {
-    const v = vid(); if (!v) return msg('No video', 'error');
-    startMarker = v.currentTime;
+  panel.querySelector('#ltaMarkS').addEventListener('click', () => {
+    const vo = v(); if (!vo) return msg('No video', 'error');
+    startMarker = vo.currentTime;
     if (endMarker != null && endMarker <= startMarker) endMarker = null;
-    saveMarkers();
-    panel.querySelector('#ltaCardName').value = genName();
+    activeLickIndex = -1; // New lick
+    panel.querySelector('#ltaName').value = genName();
     updateUI();
   });
 
-  panel.querySelector('#ltaBtnEnd').addEventListener('click', () => {
-    const v = vid(); if (!v) return msg('No video', 'error');
-    if (startMarker != null && v.currentTime <= startMarker) return msg('End must be after start', 'error');
-    endMarker = v.currentTime;
-    saveMarkers();
+  panel.querySelector('#ltaMarkE').addEventListener('click', () => {
+    const vo = v(); if (!vo) return msg('No video', 'error');
+    if (startMarker != null && vo.currentTime <= startMarker) return msg('End must be after start', 'error');
+    endMarker = vo.currentTime;
     updateUI();
   });
 
-  panel.querySelector('#ltaBtnClear').addEventListener('click', () => {
-    startMarker = null; endMarker = null;
-    panel.querySelector('#ltaCardName').value = '';
-    stopLoop();
-    panel.querySelector('#ltaLoopCheck').checked = false;
-    saveMarkers(); updateUI();
-    panel.querySelector('#ltaMessage').className = 'lta-message';
+  panel.querySelector('#ltaClear').addEventListener('click', () => {
+    startMarker = null; endMarker = null; activeLickIndex = -1;
+    panel.querySelector('#ltaName').value = '';
+    stopLoop(); panel.querySelector('#ltaLoop').checked = false;
+    updateUI();
+    panel.querySelector('#ltaMsg').className = 'lta-msg';
   });
 
-  panel.querySelector('#ltaStart').addEventListener('click', () => {
+  panel.querySelector('#ltaS').addEventListener('click', () => {
     if (startMarker == null) return;
-    pauseLoop();
-    const v = vid(); if (v) v.currentTime = startMarker;
+    pauseLoop(); const vo = v(); if (vo) vo.currentTime = startMarker;
   });
-
-  panel.querySelector('#ltaEnd').addEventListener('click', () => {
+  panel.querySelector('#ltaE').addEventListener('click', () => {
     if (endMarker == null) return;
-    pauseLoop();
-    const v = vid(); if (v) v.currentTime = endMarker;
+    pauseLoop(); const vo = v(); if (vo) vo.currentTime = endMarker;
   });
 
-  panel.querySelector('#ltaStartMinus').addEventListener('click', () => nudge('start', -FRAME));
-  panel.querySelector('#ltaStartPlus').addEventListener('click', () => nudge('start', FRAME));
-  panel.querySelector('#ltaEndMinus').addEventListener('click', () => nudge('end', -FRAME));
-  panel.querySelector('#ltaEndPlus').addEventListener('click', () => nudge('end', FRAME));
+  panel.querySelector('#ltaSM').addEventListener('click', () => nudge('s', -FRAME));
+  panel.querySelector('#ltaSP').addEventListener('click', () => nudge('s', FRAME));
+  panel.querySelector('#ltaEM').addEventListener('click', () => nudge('e', -FRAME));
+  panel.querySelector('#ltaEP').addEventListener('click', () => nudge('e', FRAME));
 
-  panel.querySelector('#ltaLoopCheck').addEventListener('change', e => {
+  panel.querySelector('#ltaLoop').addEventListener('change', e => {
     e.target.checked ? startLoop() : stopLoop();
   });
 
-  panel.querySelector('#ltaBtnCreate').addEventListener('click', createCard);
+  panel.querySelector('#ltaCreate').addEventListener('click', createCard);
 
   // --- Toggle from extension icon ---
   window._ltaListener = (request, sender, sendResponse) => {
@@ -354,7 +449,7 @@
       panel.classList.toggle('visible');
       if (panel.classList.contains('visible')) {
         checkHost(); checkAnki();
-        loadMarkers(() => updateUI());
+        load(() => updateUI());
       }
       sendResponse({ ok: true });
     }
@@ -362,7 +457,34 @@
   };
   chrome.runtime.onMessage.addListener(window._ltaListener);
 
-  // Block YouTube keyboard shortcuts when panel is focused
+  // --- Auto-loop from Anki link ---
+  function checkHashForAutoLoop() {
+    const hash = window.location.hash;
+    const match = hash.match(/lta=([\d.]+),([\d.]+)/);
+    if (match) {
+      startMarker = parseFloat(match[1]);
+      endMarker = parseFloat(match[2]);
+      panel.classList.add('visible');
+      panel.querySelector('#ltaLoop').checked = true;
+      // Wait for video to be ready
+      const waitForVideo = setInterval(() => {
+        const vo = v();
+        if (vo && vo.readyState >= 2) {
+          clearInterval(waitForVideo);
+          checkHost(); checkAnki();
+          load(() => {
+            updateUI();
+            startLoop();
+          });
+        }
+      }, 300);
+      // Clean hash so it doesn't re-trigger
+      history.replaceState(null, '', window.location.href.replace(/#.*/, ''));
+    }
+  }
+  checkHashForAutoLoop();
+
+  // Block YouTube shortcuts when typing in panel
   panel.addEventListener('keydown', e => e.stopPropagation());
   panel.addEventListener('keyup', e => e.stopPropagation());
   panel.addEventListener('keypress', e => e.stopPropagation());
