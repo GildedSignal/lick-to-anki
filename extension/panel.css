@@ -10,7 +10,7 @@
   top: 70px;
   right: 16px;
   z-index: 99999;
-  width: 340px;
+  width: 380px;
   font-family: 'Noto Serif', 'Georgia', serif;
   font-size: 13px;
   color: #3b2f20;
@@ -38,7 +38,7 @@
 
 /* ── Header: wooden plank ── */
 .lta-header {
-  padding: 10px 14px;
+  padding: 14px 18px;
   display: flex; align-items: center; justify-content: space-between;
   cursor: grab;
   background:
@@ -56,38 +56,38 @@
 }
 .lta-header:active { cursor: grabbing; }
 .lta-header h1 {
-  font-size: 15px; font-weight: 700; color: #faebd7;
+  font-size: 16px; font-weight: 700; color: #faebd7;
   text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
-  letter-spacing: 1.5px;
+  letter-spacing: 2px;
   text-transform: uppercase;
 }
 .lta-close {
   background: none; border: none; color: #d4b896;
-  font-size: 20px; cursor: pointer; padding: 0 2px; line-height: 1;
+  font-size: 22px; cursor: pointer; padding: 0 2px; line-height: 1;
   text-shadow: 1px 1px 1px rgba(0,0,0,0.4);
 }
 .lta-close:hover { color: #fff; }
 
 /* ── Status bar ── */
 .lta-status {
-  display: flex; gap: 14px; padding: 6px 14px;
+  display: flex; gap: 16px; padding: 7px 18px;
   border-bottom: 1px solid rgba(139,115,85,0.3);
-  font-size: 10px; color: #7a6548;
+  font-size: 11px; color: #7a6548;
   background: rgba(139,115,85,0.06);
 }
-.lta-status-item { display: flex; align-items: center; gap: 4px; }
+.lta-status-item { display: flex; align-items: center; gap: 5px; }
 .lta-dot { width: 7px; height: 7px; border-radius: 50%; border: 1px solid rgba(0,0,0,0.15); }
 .lta-dot.ok { background: #6b8e5a; box-shadow: 0 0 3px rgba(107,142,90,0.4); }
 .lta-dot.err { background: #c0392b; box-shadow: 0 0 3px rgba(192,57,43,0.4); }
 .lta-dot.pending { background: #b8a080; }
 
 /* ── Body ── */
-.lta-body { padding: 14px; }
+.lta-body { padding: 20px; }
 
 /* ── Section labels ── */
 .lta-section {
   font-size: 9px; text-transform: uppercase; letter-spacing: 2px;
-  color: #9e8868; margin-bottom: 8px;
+  color: #9e8868; margin-bottom: 12px;
   display: flex; align-items: center; gap: 8px;
 }
 .lta-section::after {
@@ -96,17 +96,21 @@
 }
 
 /* ── Markers ── */
-.lta-markers { display: flex; gap: 10px; margin-bottom: 6px; }
+.lta-markers {
+  display: flex; gap: 20px; margin-bottom: 12px;
+}
 .lta-marker { flex: 1; text-align: center; }
 .lta-marker-label {
-  font-size: 9px; text-transform: uppercase; letter-spacing: 1px;
-  color: #9e8868; margin-bottom: 2px;
+  font-size: 10px; text-transform: uppercase; letter-spacing: 1.5px;
+  color: #9e8868; margin-bottom: 6px;
 }
-.lta-marker-row { display: flex; align-items: center; gap: 4px; justify-content: center; }
+.lta-marker-row {
+  display: flex; align-items: center; gap: 8px; justify-content: center;
+}
 
 .lta-ts {
   font-family: 'Noto Serif', Georgia, serif;
-  font-size: 20px; font-weight: 700; color: #3b2f20;
+  font-size: 22px; font-weight: 700; color: #3b2f20;
   cursor: pointer; flex: 1; text-align: center;
   text-shadow: 0 1px 0 rgba(255,240,210,0.6);
 }
@@ -114,13 +118,13 @@
 .lta-ts.empty { color: #c4b49a; cursor: default; }
 .lta-ts.empty:hover { color: #c4b49a; }
 
-/* ── Nudge buttons: wooden toggles ── */
+/* ── Nudge buttons ── */
 .lta-nudge {
   background: linear-gradient(180deg, #a08060 0%, #8b6d42 100%);
   border: 1px solid #6b5030;
   color: #f0e0c8;
-  width: 22px; height: 26px; border-radius: 3px;
-  font-size: 14px; cursor: pointer; display: flex;
+  width: 26px; height: 30px; border-radius: 3px;
+  font-size: 16px; cursor: pointer; display: flex;
   align-items: center; justify-content: center; flex-shrink: 0;
   text-shadow: 0 1px 1px rgba(0,0,0,0.3);
   box-shadow: inset 0 1px 0 rgba(255,220,160,0.3), 0 1px 2px rgba(0,0,0,0.15);
@@ -132,30 +136,30 @@
 
 /* ── Duration badge ── */
 .lta-dur {
-  text-align: center; margin-bottom: 10px;
+  text-align: center; margin-bottom: 14px;
 }
 .lta-dur span {
   display: inline-block;
   background: rgba(139,115,85,0.12);
   border: 1px solid rgba(139,115,85,0.25);
-  border-radius: 10px;
-  padding: 2px 12px;
-  font-size: 12px; color: #6b5030;
+  border-radius: 12px;
+  padding: 3px 16px;
+  font-size: 13px; color: #6b5030;
   font-weight: 600;
 }
 
-/* ── Action buttons: wooden style ── */
-.lta-actions { display: flex; gap: 6px; margin-bottom: 10px; }
+/* ── Action buttons ── */
+.lta-actions { display: flex; gap: 8px; margin-bottom: 14px; }
 
 #lta-panel .lta-btn {
-  flex: 1; padding: 7px 4px;
+  flex: 1; padding: 10px 6px;
   border: 1px solid #8b7355;
   border-radius: 4px;
   background:
     linear-gradient(90deg, rgba(120,80,40,0.05) 0%, transparent 50%, rgba(120,80,40,0.05) 100%),
     linear-gradient(180deg, #c4a87a 0%, #b8986a 40%, #a88858 100%);
   color: #3b2f20;
-  font-size: 11px; font-weight: 600; cursor: pointer;
+  font-size: 12px; font-weight: 600; cursor: pointer;
   font-family: 'Noto Serif', Georgia, serif;
   text-shadow: 0 1px 0 rgba(255,240,210,0.4);
   box-shadow: inset 0 1px 0 rgba(255,220,160,0.35), 0 1px 2px rgba(0,0,0,0.1);
@@ -171,20 +175,20 @@
 
 /* ── Loop toggle ── */
 .lta-loop {
-  display: none; align-items: center; margin-bottom: 12px;
+  display: none; align-items: center; margin-bottom: 16px;
   font-size: 12px;
 }
 .lta-loop.visible { display: flex; }
 .lta-loop label {
-  color: #6b5030; display: flex; align-items: center; gap: 6px; cursor: pointer;
+  color: #6b5030; display: flex; align-items: center; gap: 8px; cursor: pointer;
 }
 .lta-loop input[type="checkbox"] { accent-color: #8b6d42; }
 
-/* ── Divider: brush stroke ── */
+/* ── Divider ── */
 .lta-divider {
   border: none;
   height: 2px;
-  margin: 14px 0;
+  margin: 18px 0;
   background:
     linear-gradient(90deg,
       transparent 0%,
@@ -197,16 +201,16 @@
     );
 }
 
-/* ── Name input: scroll style ── */
+/* ── Name input ── */
 .lta-input {
-  width: 100%; padding: 8px 10px;
+  width: 100%; padding: 10px 12px;
   border: 1px solid #b8a080;
   border-radius: 3px;
   background: rgba(255,250,240,0.6);
   color: #3b2f20;
   font-size: 12px;
   font-family: 'Noto Serif', Georgia, serif;
-  margin-bottom: 10px; outline: none;
+  margin-bottom: 12px; outline: none;
   box-shadow: inset 0 1px 3px rgba(139,115,85,0.1);
 }
 .lta-input:focus {
@@ -215,13 +219,12 @@
 }
 .lta-input::placeholder { color: #c4b49a; }
 
-/* ── Create button: lacquered wood ── */
+/* ── Create button ── */
 #lta-panel .lta-primary {
-  width: 100%; padding: 10px;
+  width: 100%; padding: 12px;
   border: 2px solid #5e2018;
   border-radius: 4px;
-  background:
-    linear-gradient(180deg, #c0392b 0%, #a93226 40%, #922b21 100%);
+  background: linear-gradient(180deg, #c0392b 0%, #a93226 40%, #922b21 100%);
   color: #faebd7;
   font-size: 13px; font-weight: 700;
   cursor: pointer;
@@ -229,9 +232,7 @@
   letter-spacing: 1px;
   text-transform: uppercase;
   text-shadow: 0 1px 2px rgba(0,0,0,0.4);
-  box-shadow:
-    inset 0 1px 0 rgba(255,150,130,0.25),
-    0 2px 4px rgba(0,0,0,0.2);
+  box-shadow: inset 0 1px 0 rgba(255,150,130,0.25), 0 2px 4px rgba(0,0,0,0.2);
 }
 #lta-panel .lta-primary:hover {
   background: linear-gradient(180deg, #d44637 0%, #c0392b 40%, #a93226 100%);
@@ -247,8 +248,8 @@
 
 /* ── Messages ── */
 .lta-msg {
-  padding: 7px 10px; border-radius: 3px; font-size: 11px;
-  margin-top: 8px; display: none;
+  padding: 8px 12px; border-radius: 3px; font-size: 11px;
+  margin-top: 10px; display: none;
 }
 .lta-msg.error {
   background: rgba(192,57,43,0.08);
@@ -261,64 +262,101 @@
   color: #4a6e3a; display: block;
 }
 
+/* ── Saved Licks section header with + button ── */
+.lta-section-row {
+  display: flex; align-items: center; margin-bottom: 12px;
+}
+.lta-section-row .lta-section {
+  margin-bottom: 0; flex: 1;
+}
+.lta-add-btn {
+  background: linear-gradient(180deg, #a08060 0%, #8b6d42 100%);
+  border: 1px solid #6b5030;
+  color: #f0e0c8;
+  width: 26px; height: 26px; border-radius: 3px;
+  font-size: 18px; line-height: 1;
+  cursor: pointer; display: flex;
+  align-items: center; justify-content: center;
+  text-shadow: 0 1px 1px rgba(0,0,0,0.3);
+  box-shadow: inset 0 1px 0 rgba(255,220,160,0.3), 0 1px 2px rgba(0,0,0,0.15);
+  flex-shrink: 0;
+}
+.lta-add-btn:hover { background: linear-gradient(180deg, #b89070 0%, #9e7e52 100%); }
+.lta-add-btn:active { transform: scale(0.95); }
+.lta-add-btn:disabled { opacity: 0.3; cursor: default; }
+
 /* ── Saved licks list ── */
 .lta-licks {
-  max-height: 180px;
+  max-height: 240px;
   overflow-y: auto;
-  margin-bottom: 8px;
 }
 .lta-licks::-webkit-scrollbar { width: 5px; }
 .lta-licks::-webkit-scrollbar-track { background: transparent; }
 .lta-licks::-webkit-scrollbar-thumb { background: #c4b49a; border-radius: 3px; }
 
 .lta-lick {
-  display: flex; align-items: center; gap: 6px;
-  padding: 7px 8px; margin-bottom: 4px;
-  border-radius: 3px;
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 12px; margin-bottom: 6px;
+  border-radius: 4px;
   cursor: pointer;
-  transition: background 0.1s;
-  border: 1px solid transparent;
-  background: rgba(139,115,85,0.04);
+  transition: all 0.15s;
+  border: 1px solid rgba(139,115,85,0.12);
+  background: rgba(255,250,240,0.4);
 }
 .lta-lick:hover {
-  background: rgba(139,115,85,0.1);
-  border-color: rgba(139,115,85,0.2);
+  background: rgba(255,250,240,0.7);
+  border-color: rgba(139,115,85,0.3);
 }
 .lta-lick.active {
-  background: rgba(139,109,66,0.12);
+  background: rgba(139,109,66,0.1);
   border-color: #8b6d42;
+  box-shadow: 0 1px 3px rgba(139,109,66,0.1);
 }
+
+.lta-lick-info { flex: 1; min-width: 0; }
 
 .lta-lick-name {
-  flex: 1; font-size: 11px; color: #6b5030;
+  font-size: 12px; color: #5a4630;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  margin-bottom: 3px;
 }
-.lta-lick.active .lta-lick-name { color: #3b2f20; font-weight: 600; }
+.lta-lick.active .lta-lick-name { color: #3b2f20; font-weight: 700; }
 
-.lta-lick-dur {
-  font-size: 10px; color: #9e8868;
-  font-family: 'Noto Serif', Georgia, serif;
-  flex-shrink: 0;
+.lta-lick-meta {
+  font-size: 10px; color: #a89878;
+  display: flex; gap: 8px;
+}
+
+.lta-lick-actions {
+  display: flex; gap: 4px; align-items: center; flex-shrink: 0;
 }
 
 .lta-lick-btn {
-  background: none; border: none; color: #9e8868;
-  font-size: 13px; cursor: pointer; padding: 0 2px;
-  flex-shrink: 0;
+  background: none; border: 1px solid transparent;
+  color: #a89878;
+  width: 28px; height: 28px;
+  border-radius: 4px;
+  font-size: 14px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.1s;
 }
-.lta-lick-btn:hover { color: #c0392b; }
+.lta-lick-btn:hover {
+  background: rgba(139,115,85,0.1);
+  border-color: rgba(139,115,85,0.2);
+}
+.lta-lick-del:hover { color: #c0392b; }
 .lta-lick-play:hover { color: #6b8e5a; }
 
 .lta-empty {
-  text-align: center; color: #b8a080; font-size: 11px;
-  padding: 14px 0; font-style: italic;
+  text-align: center; color: #b8a080; font-size: 12px;
+  padding: 24px 0; font-style: italic;
 }
 
 /* ── Stamp decoration ── */
 .lta-stamp {
-  position: absolute; top: 50px; right: 8px;
+  position: absolute; top: 55px; right: 10px;
   writing-mode: vertical-rl;
-  font-size: 10px; color: rgba(192,57,43,0.2);
+  font-size: 11px; color: rgba(192,57,43,0.15);
   letter-spacing: 3px; font-weight: 700;
   pointer-events: none;
 }

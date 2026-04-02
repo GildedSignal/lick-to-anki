@@ -66,7 +66,10 @@
 
       <hr class="lta-divider">
 
-      <div class="lta-section">Saved Licks</div>
+      <div class="lta-section-row">
+        <div class="lta-section">Saved Licks</div>
+        <button class="lta-add-btn" id="ltaAddLick" title="Save current markers as a lick" disabled>+</button>
+      </div>
       <div id="ltaLicks"></div>
 
       <div class="lta-msg" id="ltaMsg"></div>
@@ -147,6 +150,7 @@
       panel.querySelector('#ltaLoopRow').classList.remove('visible');
     }
     panel.querySelector('#ltaCreate').disabled = !both;
+    panel.querySelector('#ltaAddLick').disabled = !both;
     if (!nameEl.value && startMarker != null) nameEl.value = genName();
 
     renderLicks();
@@ -155,15 +159,22 @@
   function renderLicks() {
     const container = panel.querySelector('#ltaLicks');
     if (licks.length === 0) {
-      container.innerHTML = '<div class="lta-empty">No saved licks yet</div>';
+      container.innerHTML = '<div class="lta-empty">Mark start &amp; end, then press + to save</div>';
       return;
     }
     container.innerHTML = licks.map((l, i) => `
       <div class="lta-lick ${i === activeLickIndex ? 'active' : ''}" data-i="${i}">
-        <span class="lta-lick-name">${l.name}</span>
-        <span class="lta-lick-dur">${(l.end - l.start).toFixed(1)}s</span>
-        <button class="lta-lick-btn lta-lick-play" data-i="${i}" title="Loop this lick">&#9654;</button>
-        <button class="lta-lick-btn lta-lick-del" data-i="${i}" title="Remove">&times;</button>
+        <div class="lta-lick-info">
+          <div class="lta-lick-name">${l.name}</div>
+          <div class="lta-lick-meta">
+            <span>${fmt(l.start)} — ${fmt(l.end)}</span>
+            <span>${(l.end - l.start).toFixed(1)}s</span>
+          </div>
+        </div>
+        <div class="lta-lick-actions">
+          <button class="lta-lick-btn lta-lick-play" data-i="${i}" title="Loop this lick">&#9654;</button>
+          <button class="lta-lick-btn lta-lick-del" data-i="${i}" title="Remove">&times;</button>
+        </div>
       </div>
     `).join('');
 
@@ -458,6 +469,12 @@
   });
 
   panel.querySelector('#ltaCreate').addEventListener('click', createCard);
+
+  panel.querySelector('#ltaAddLick').addEventListener('click', () => {
+    if (startMarker == null || endMarker == null) return;
+    saveLick();
+    msg('Lick saved', 'success');
+  });
 
   // --- Toggle from extension icon ---
   window._ltaListener = (request, sender, sendResponse) => {
